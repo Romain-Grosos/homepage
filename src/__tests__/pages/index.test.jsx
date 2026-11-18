@@ -429,6 +429,41 @@ describe("pages/index Home behavior", () => {
     state.widgetCalls = [];
   });
 
+  it("exposes service dropdown links to QuickLaunch as their own entries", async () => {
+    state.servicesData = [
+      {
+        name: "Services",
+        services: [
+          {
+            name: "Forti",
+            target: "_self",
+            links: [
+              { name: "l1", href: "http://link/1" },
+              { name: "l2", href: "http://link/2", description: "Custom", target: "_top" },
+            ],
+          },
+        ],
+        groups: [],
+      },
+    ];
+
+    await renderIndex({
+      initialSettings: { title: "Homepage", layout: {} },
+      settings: { title: "Homepage", layout: {}, language: "en" },
+    });
+
+    await waitFor(() => {
+      expect(state.quickLaunchProps).toBeTruthy();
+    });
+
+    const entries = state.quickLaunchProps.servicesAndBookmarks;
+    expect(entries.map((i) => i.name)).toEqual(["b1", "l1", "l2"]);
+    expect(entries[1]).toEqual(
+      expect.objectContaining({ href: "http://link/1", description: "Forti", target: "_self", type: "service" }),
+    );
+    expect(entries[2]).toEqual(expect.objectContaining({ description: "Custom", target: "_top" }));
+  });
+
   it("passes href-bearing services and bookmarks to QuickLaunch and toggles search on keydown", async () => {
     await renderIndex({
       initialSettings: { title: "Homepage", layout: {} },

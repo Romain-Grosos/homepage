@@ -366,6 +366,45 @@ describe("utils/config/service-helpers", () => {
     expect(state.logger.error).toHaveBeenCalled();
   });
 
+  it("normalizeServiceLinks accepts YAML and flat shapes and drops invalid entries", async () => {
+    const { normalizeServiceLinks } = await import("./service-helpers");
+
+    expect(
+      normalizeServiceLinks([
+        { FortiGate: { href: "https://fgt", icon: "fgt.png" } },
+        { name: "FortiManager", href: "https://fmg" },
+        { NoHref: { icon: "x.png" } },
+        { Empty: null },
+        "bad",
+        null,
+      ]),
+    ).toEqual([
+      { name: "FortiGate", href: "https://fgt", icon: "fgt.png" },
+      { name: "FortiManager", href: "https://fmg" },
+    ]);
+
+    expect(normalizeServiceLinks("nope")).toBeUndefined();
+    expect(normalizeServiceLinks([{ NoHref: {} }])).toBeUndefined();
+  });
+
+  it("cleanServiceGroups normalizes service links and removes empty ones", async () => {
+    const { cleanServiceGroups } = await import("./service-helpers");
+
+    const [group] = cleanServiceGroups([
+      {
+        name: "Group",
+        services: [
+          { name: "with", links: [{ A: { href: "https://a" } }] },
+          { name: "without", links: [{ B: {} }] },
+        ],
+        groups: [],
+      },
+    ]);
+
+    expect(group.services[0].links).toEqual([{ name: "A", href: "https://a" }]);
+    expect(group.services[1]).not.toHaveProperty("links");
+  });
+
   it("cleanServiceGroups applies widget-type specific mappings for commonly used widgets", async () => {
     const mod = await import("./service-helpers");
     const { cleanServiceGroups } = mod;

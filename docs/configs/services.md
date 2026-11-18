@@ -60,6 +60,34 @@ Services are defined as array entries on groups,
 
 <img width="1038" alt="Service Services" src="https://user-images.githubusercontent.com/82196/187040763-038023a2-8bee-4d87-b5cc-13447e7365a4.png">
 
+### Dropdown Links
+
+A service can hold several links behind a single card by using `links` instead of `href`. The card looks like any other service, but clicking it opens a dropdown menu listing the links. This is useful to group related consoles (e.g. all the tools of one vendor) without adding a nested group.
+
+```yaml
+- Infrastructure:
+    - Hypervisor:
+        icon: vmware.png
+        href: https://vcenter.example.com
+        description: Virtualization
+
+    - Fortinet:
+        icon: fortinet.png
+        description: Security
+        links:
+          - FortiGate:
+              href: https://fortigate.example.com
+              icon: fortinet.png
+              description: Firewall
+          - FortiManager:
+              href: https://fortimanager.example.com
+          - FortiAnalyzer:
+              href: https://fortianalyzer.example.com
+              target: _self
+```
+
+Each link supports `href` (required), `icon`, `description` and `target`. When `target` is not set, the service `target` and then the global [`target`](settings.md#link-target) setting are used. When `links` is set, the service `href` is not used for the card itself. Links are also available in [Quick Launch](settings.md#quick-launch), with the service name as their description.
+
 ### Service Widgets
 
 Each service can have widgets attached to it (often matching the service type, but that's not forced).

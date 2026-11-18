@@ -150,8 +150,22 @@ const headerStyles = {
 };
 
 function getAllServices(services) {
+  // expose dropdown links of a service as their own search entries
+  function withLinks(service) {
+    if (!Array.isArray(service.links)) return [service];
+    return [
+      service,
+      ...service.links.map((link) => ({
+        ...link,
+        description: link.description ?? service.name,
+        target: link.target ?? service.target,
+        type: "service",
+      })),
+    ];
+  }
+
   function getServices(group) {
-    let nestedServices = [...group.services];
+    let nestedServices = group.services.flatMap(withLinks);
     if (group.groups.length > 0) {
       nestedServices = [...nestedServices, ...group.groups.map(getServices).flat()];
     }

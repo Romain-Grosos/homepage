@@ -7,6 +7,7 @@ import Kubernetes from "widgets/kubernetes/component";
 import ProxmoxVM from "widgets/proxmoxvm/component";
 
 import KubernetesStatus from "./kubernetes-status";
+import LinksMenu from "./links-menu";
 import Ping from "./ping";
 import ProxmoxStatus from "./proxmox-status";
 import SiteMonitor from "./site-monitor";
@@ -14,7 +15,8 @@ import Status from "./status";
 import Widget from "./widget";
 
 export default function Item({ service, groupName, useEqualHeights }) {
-  const hasLink = service.href && service.href !== "#";
+  const hasLinks = Array.isArray(service.links) && service.links.length > 0;
+  const hasLink = !hasLinks && service.href && service.href !== "#";
   const { settings } = useContext(SettingsContext);
   const showStats = service.showStats === false ? false : settings.showStats;
   const statusStyle = service.statusStyle !== undefined ? service.statusStyle : settings.statusStyle;
@@ -47,7 +49,10 @@ export default function Item({ service, groupName, useEqualHeights }) {
         )}
       >
         <div className="flex select-none z-0 service-title">
-          {service.icon &&
+          {hasLinks && <LinksMenu service={service} />}
+
+          {!hasLinks &&
+            service.icon &&
             (hasLink ? (
               <a
                 href={service.href}
@@ -64,30 +69,31 @@ export default function Item({ service, groupName, useEqualHeights }) {
               </div>
             ))}
 
-          {hasLink ? (
-            <a
-              href={service.href}
-              target={service.target ?? settings.target ?? "_blank"}
-              rel="noreferrer"
-              className="flex-1 flex items-center justify-between rounded-r-md service-title-text"
-            >
-              <div className="flex-1 px-2 py-2 text-sm text-left z-10 service-name">
-                {service.name}
-                <p className="text-theme-500 dark:text-theme-300 text-xs font-light service-description">
-                  {service.description}
-                </p>
+          {!hasLinks &&
+            (hasLink ? (
+              <a
+                href={service.href}
+                target={service.target ?? settings.target ?? "_blank"}
+                rel="noreferrer"
+                className="flex-1 flex items-center justify-between rounded-r-md service-title-text"
+              >
+                <div className="flex-1 px-2 py-2 text-sm text-left z-10 service-name">
+                  {service.name}
+                  <p className="text-theme-500 dark:text-theme-300 text-xs font-light service-description">
+                    {service.description}
+                  </p>
+                </div>
+              </a>
+            ) : (
+              <div className="flex-1 flex items-center justify-between rounded-r-md service-title-text">
+                <div className="flex-1 px-2 py-2 text-sm text-left z-10 service-name">
+                  {service.name}
+                  <p className="text-theme-500 dark:text-theme-300 text-xs font-light service-description">
+                    {service.description}
+                  </p>
+                </div>
               </div>
-            </a>
-          ) : (
-            <div className="flex-1 flex items-center justify-between rounded-r-md service-title-text">
-              <div className="flex-1 px-2 py-2 text-sm text-left z-10 service-name">
-                {service.name}
-                <p className="text-theme-500 dark:text-theme-300 text-xs font-light service-description">
-                  {service.description}
-                </p>
-              </div>
-            </div>
-          )}
+            ))}
 
           <div
             className={`absolute top-0 right-0 flex flex-row justify-end ${

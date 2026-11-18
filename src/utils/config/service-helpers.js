@@ -60,6 +60,24 @@ export async function servicesFromConfig() {
   return parseServicesToGroups(services);
 }
 
+// normalize `links` (service dropdown entries) from the YAML shape `- Name: { href, ... }`
+// or the already-flat shape `- { name, href, ... }` into `[{ name, href, ... }]`
+export function normalizeServiceLinks(links) {
+  if (!Array.isArray(links)) return undefined;
+
+  const normalized = links
+    .map((link) => {
+      if (!link || typeof link !== "object") return null;
+      if (typeof link.name === "string") return { ...link };
+      const name = Object.keys(link)[0];
+      if (!name || !link[name] || typeof link[name] !== "object") return null;
+      return { name, ...link[name] };
+    })
+    .filter((link) => link?.href);
+
+  return normalized.length > 0 ? normalized : undefined;
+}
+
 function flattenServices(groups, services = []) {
   groups.forEach((group) => {
     (group.services ?? []).forEach((service) => services.push(service));
@@ -278,6 +296,11 @@ export function cleanServiceGroups(groups) {
       }
       if (typeof cleanedService.weight !== "number") {
         cleanedService.weight = 0;
+      }
+      if (cleanedService.links !== undefined) {
+        const links = normalizeServiceLinks(cleanedService.links);
+        if (links) cleanedService.links = links;
+        else delete cleanedService.links;
       }
       if (!cleanedService.widgets) cleanedService.widgets = [];
       if (cleanedService.widget) {

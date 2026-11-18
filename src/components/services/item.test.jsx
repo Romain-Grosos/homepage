@@ -54,6 +54,11 @@ vi.mock("./proxmox-status", () => ({
     return <div data-testid="proxmox-status" />;
   },
 }));
+vi.mock("./links-menu", () => ({
+  default: function LinksMenuMock({ service }) {
+    return <div data-testid="links-menu">{service.links.length}</div>;
+  },
+}));
 vi.mock("./widget", () => ({
   default: function ServiceWidgetMock({ widget }) {
     return <div data-testid="service-widget">idx:{widget.index}</div>;
@@ -105,6 +110,31 @@ describe("components/services/item", () => {
     // The title area should not create a clickable href="#" link.
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByTestId("resolved-icon")).toBeInTheDocument();
+  });
+
+  it("renders a links menu instead of the title link when links are provided", () => {
+    renderWithProviders(
+      <Item
+        groupName="G"
+        useEqualHeights={false}
+        service={{
+          id: "svc1",
+          name: "My Service",
+          href: "https://example.com",
+          icon: "mdi:test",
+          links: [
+            { name: "A", href: "https://a.example" },
+            { name: "B", href: "https://b.example" },
+          ],
+          widgets: [],
+        }}
+      />,
+      { settings: { showStats: false, statusStyle: "basic" } },
+    );
+
+    expect(screen.getByTestId("links-menu")).toHaveTextContent("2");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("resolved-icon")).not.toBeInTheDocument();
   });
 
   it("toggles container stats on click when stats are hidden by default", () => {
